@@ -56,39 +56,74 @@ class StudentController extends Controller
     }
 
     // Method untuk memperbarui data
-    public function update(Request $request, $id)
-    {
-        // Cari student berdasarkan ID
-        $student = Student::find($id);
+ // Method untuk memperbarui data
+ public function update(Request $request, $id)
+ {
+ // Cari student berdasarkan ID
+ $student = Student::find($id);
 
-        // Jika student tidak ditemukan, kembalikan respons 404
-        if (!$student) {
-            return response()->json(['message' => 'Student tidak ditemukan'], 404);
-        }
+ // Jika student tidak ditemukan, kembalikan respons 404
+ if (!$student) {
+     return response()->json(['message' => 'Student not found'], 404);
+ }
 
-        // Validasi input
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string',
-            'nim' => 'sometimes|required|string|unique:students,nim,' . $id,
-            'email' => 'sometimes|required|email|unique:students,email,' . $id,
-            'majority' => 'sometimes|required|string'
-        ]);
+ // Validasi input untuk PUT, semua field required
+ $validator = Validator::make($request->all(), [
+     'name' => 'required|string',
+     'nim' => 'required|string|unique:students,nim,' . $id,
+     'email' => 'required|email|unique:students,email,' . $id,
+     'majority' => 'required|string'
+ ]);
 
-        // Cek jika ada error pada validasi
-        if ($validator->fails()) {
-            return response()->json(['message' => 'Data tidak lengkap atau tidak valid', 'errors' => $validator->errors()], 400);
-        }
+ // Cek jika ada error pada validasi
+ if ($validator->fails()) {
+     return response()->json(['message' => 'Data tidak lengkap. Masukkan data yang lengkap!', 'errors' => $validator->errors()], 400);
+ }
 
-        // Update data student
-        $student->update($request->only(['name', 'nim', 'email', 'majority']));
+ // Replace seluruh data student
+ $student->update($request->all());
 
-        $response = [
-            'message' => 'Successfully updated student',
-            'data' => $student
-        ];
+ $response = [
+     'message' => 'Successfully replaced student data',
+     'data' => $student
+ ];
 
-        return response()->json($response, 200);
-    }
+ return response()->json($response, 200);
+ }
+
+ public function partialUpdate(Request $request, $id)
+ {
+ // Cari student berdasarkan ID
+ $student = Student::find($id);
+
+ // Jika student tidak ditemukan, kembalikan respons 404
+ if (!$student) {
+     return response()->json(['message' => 'Student not found'], 404);
+ }
+
+ // Validasi input untuk PATCH, tidak semua field required
+ $validator = Validator::make($request->all(), [
+     'name' => 'sometimes|required|string',
+     'nim' => 'sometimes|required|string|unique:students,nim,' . $id,
+     'email' => 'sometimes|required|email|unique:students,email,' . $id,
+     'majority' => 'sometimes|required|string'
+ ]);
+
+ // Cek jika ada error pada validasi
+ if ($validator->fails()) {
+     return response()->json(['message' => 'Data tidak lengkap. Masukkan data yang lengkap!', 'errors' => $validator->errors()], 400);
+ }
+
+ // Update hanya data yang disediakan
+ $student->update($request->only(['name', 'nim', 'email', 'majority']));
+
+ $response = [
+     'message' => 'Successfully updated student data partially',
+     'data' => $student
+ ];
+
+ return response()->json($response, 200);
+ }
 
     // Method untuk menghapus data
     public function destroy($id)
