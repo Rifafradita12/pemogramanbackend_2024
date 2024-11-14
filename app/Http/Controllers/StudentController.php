@@ -4,79 +4,83 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Student;
-
+use Validator;
 
 class StudentController extends Controller
 {
-
-    //Method index
+    // Method index
     public function index()
     {
-        //variable menampung fungsi untuk menampilkan data
         $students = Student::all();
 
-        //variable array untuk menampung hasil data dan pesan
-        $response = [
+        return response()->json([
             'data' => $students,
             'message' => 'Berhasil menampilkan semua data students'
-        ];
-
-        return response()->json($response, 200);
+        ], 200);
     }
 
-    //Method untuk menambahkan data
-       public function store(Request $request)
+    // Method untuk menambahkan data
+    public function store(Request $request)
     {
-       $input = [
-        'name' => $request->name,
-        'nim' => $request->nim,
-        'email' => $request->email,
-        'majority' => $request->majority
-       ];
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'nim' => 'required|string|max:20|unique:students,nim',
+            'email' => 'required|email|unique:students,email',
+            'majority' => 'required|string|max:255'
+        ]);
 
-       $students = Student::create($input);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
 
-       $response = [
-        'message' => 'Successfully create new student',
-        'data' => $students
-       ];
-       
-       return response()->json($response, 201);
+        $student = Student::create($request->all());
+
+        return response()->json([
+            'message' => 'Berhasil membuat student baru',
+            'data' => $student
+        ], 201);
     }
 
-    //Method untuk memperbarui data
+    // Method untuk memperbarui data
     public function update(Request $request, $id)
     {
-        $students = Student::find($id);
-        if (!$students) {
-            return response()->json(['message' => 'Student not found'], 404);
+        $student = Student::find($id);
+        if (!$student) {
+            return response()->json(['message' => 'Student tidak ditemukan'], 404);
         }
 
-        $students->update($request->only(['name', 'nim', 'email', 'majority']));
-        
-        $response = [
-            'message' => 'Successfully updated student',
-            'data' => $students
-        ];
+        $validator = Validator::make($request->all(), [
+            'name' => 'sometimes|string|max:255',
+            'nim' => 'sometimes|string|max:20|unique:students,nim,' . $id,
+            'email' => 'sometimes|email|unique:students,email,' . $id,
+            'majority' => 'sometimes|string|max:255'
+        ]);
 
-        return response()->json($response, 200);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $student->update($request->all());
+
+        return response()->json([
+            'message' => 'Berhasil memperbarui student',
+            'data' => $student
+        ], 200);
     }
 
-    //Method untuk menghapus data
+    // Method untuk menghapus data
     public function destroy($id)
     {
-        $students = Student::find($id);
-        if (!$students) {
-            return response()->json(['message' => 'Student not found'], 404);
+        $student = Student::find($id);
+        if (!$student) {
+            return response()->json(['message' => 'Student tidak ditemukan'], 404);
         }
 
-        $students->delete();
+        $student->delete();
 
-        $response = [
-            'message' => 'Successfully deleted student',
-            'data' => $students
-        ];
-
-        return response()->json($response, 200);
+        return response()->json([
+            'message' => 'Berhasil menghapus student',
+            'data' => $student
+        ], 200);
     }
 }

@@ -13,7 +13,6 @@ class AnimalController extends Controller
     public function index() {
         return response()->json($this->animals);
     }
-    // hai
 
     // Menambahkan hewan baru
     public function store(Request $request) {
