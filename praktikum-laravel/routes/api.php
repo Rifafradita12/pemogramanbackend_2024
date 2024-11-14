@@ -27,9 +27,6 @@ Route::put('/students/{id}', [StudentController::class, 'update']);
 Route::delete('/students/{id}', [StudentController::class, 'destroy']);
 Route::patch('/students/{id}', [StudentController::class, 'partialUpdate']);
 
-
-
-
 #Route Register dan login
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
